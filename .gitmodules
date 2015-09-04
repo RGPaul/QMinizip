@@ -1,0 +1,3 @@
+[submodule "minizip"]
+	path = minizip
+	url = git@github.com:Manromen/minizip.git
