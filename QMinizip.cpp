@@ -28,7 +28,7 @@ SOFTWARE.
 
 using namespace rgp;
 
-explicit QMinizip::QMinizip(QObject *parent) : QObject(parent) {}
+QMinizip::QMinizip(QObject *parent) : QObject(parent) {}
 QMinizip::~QMinizip() {}
 
 // -----------------------------------------------------------------------------

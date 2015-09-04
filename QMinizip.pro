@@ -1,12 +1,7 @@
-QT       += core
-QT       -= gui
+TEMPLATE = lib
 
-TARGET = QMinizip
-CONFIG   += console
-CONFIG   -= app_bundle
+CONFIG += c++11
+CONFIG += staticlib
 
-TEMPLATE = app
-SOURCES += src/main.cpp
-
-HEADERS += src/QMinizip.h
-SOURCES += src/QMinizip.cpp
+HEADERS += QMinizip.h
+SOURCES += QMinizip.cpp
