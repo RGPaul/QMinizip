@@ -26,10 +26,27 @@ SOFTWARE.
 
 #include "QMinizip.h"
 
+#include <QFile>
+#include <QFileInfo>
+
+#include <zlib.h>
+#include <zconf.h>
+#include "minizip/zip.h"
+#include "minizip/unzip.h"
+
 using namespace rgp;
 
 QMinizip::QMinizip(QObject *parent) : QObject(parent) {}
-QMinizip::~QMinizip() {}
+
+QMinizip::~QMinizip()
+{
+    // close any open files
+    closeZipFile();
+    closeUnzipFile();
+
+    // free memory
+    if (m_unzippedFiles != nullptr) delete m_unzippedFiles;
+}
 
 // -----------------------------------------------------------------------------
 // accessors
@@ -37,31 +54,104 @@ QMinizip::~QMinizip() {}
 
 QStringList * QMinizip::unzippedFiles() const
 {
-
-}
-
-QStringList * QMinizip::zipFileContents() const
-{
-
+    return m_unzippedFiles;
 }
 
 // -----------------------------------------------------------------------------
 // zip functions
 // -----------------------------------------------------------------------------
 
-bool QMinizip::createZipFile(QString *file, QString *password)
+bool QMinizip::createZipFile(QString *file, bool append, QString *password)
 {
+    m_password = password;
+    int appendData = (append ? APPEND_STATUS_ADDINZIP : APPEND_STATUS_CREATE);
 
+    m_zipFile = zipOpen(file->toUtf8().data(), appendData);
+
+    if (!m_zipFile)
+        return false;
+
+    return true;
 }
 
 bool QMinizip::addFileToZip(QString *file, QString *newname)
 {
+    QFile f = { *file };
 
+    if (!f.exists())
+        return false;
+
+    QFileInfo fInfo = QFileInfo(f);
+
+    QByteArray data = f.readAll();
+    QDateTime created = fInfo.created();
+
+    bool result = addDataToZip(&data, newname, &created);
+
+    return result;
+}
+
+bool QMinizip::addDataToZip(QByteArray *data, QString *newname,
+                            QDateTime *created)
+{
+    if (data == nullptr || newname == nullptr || m_zipFile == nullptr)
+        return false;
+
+    QDateTime currentDateTime = QDateTime::currentDateTime();
+
+    if (created == nullptr)
+        created = &currentDateTime;
+
+    zip_fileinfo zipInfo = {{0,0,0,0,0,0},0,0,0};
+
+    zipInfo.tmz_date.tm_sec = created->time().second();
+    zipInfo.tmz_date.tm_min = created->time().minute();
+    zipInfo.tmz_date.tm_hour = created->time().hour();
+    zipInfo.tmz_date.tm_mday = created->date().day();
+    zipInfo.tmz_date.tm_mon = created->date().month() - 1; // 0-11 vs 1-12
+    zipInfo.tmz_date.tm_year = created->date().year();
+
+    if (m_password == nullptr)
+    {
+        if (zipOpenNewFileInZip(m_zipFile, // file
+                                  newname->toUtf8().data(), // filename
+                                  &zipInfo, // zipfi
+                                  NULL, // extrafield_local
+                                  0, // size_extrafield_local
+                                  NULL, // extrafield_global
+                                  0, // size_extrafield_global
+                                  NULL, //comment
+                                  Z_DEFLATED, // method
+                                  Z_DEFAULT_COMPRESSION // level
+                                  ) != Z_OK) {
+            return false;
+        }
+    }
+
+    // TODO: add password usage
+
+    if (zipWriteInFileInZip(m_zipFile, data->constData(), data->size()) != Z_OK)
+        return false;
+
+    if (zipCloseFileInZip(m_zipFile) != Z_OK)
+        return false;
+
+    return true;
 }
 
 bool QMinizip::closeZipFile()
 {
+    m_password = nullptr;
+    if (m_zipFile == nullptr)
+        return false;
 
+    if (zipClose(m_zipFile, NULL) != Z_OK) {
+        m_zipFile = nullptr;
+        return false;
+    }
+
+    m_zipFile = nullptr;
+    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -70,15 +160,90 @@ bool QMinizip::closeZipFile()
 
 bool QMinizip::openUnzipFile(QString *file, QString *password)
 {
+    m_password = password;
 
+    if (m_unzippedFiles != nullptr)
+        delete m_unzippedFiles;
+
+    m_unzippedFiles = new QStringList();
+
+    m_unzipFile = unzOpen(file->toUtf8().data());
+
+    return m_unzipFile != nullptr;
 }
 
-bool QMinizip::unzipFilesTo(QString *path, bool overwrite)
+bool QMinizip::unzipFiles(QString *targetPath, bool overwrite)
 {
+    if (targetPath == nullptr || m_unzipFile == nullptr)
+        return false;
 
+    bool success = true;
+
+    unsigned char buffer[4096] = {0};
+
+    const char *password = { nullptr };
+
+    if (m_password != nullptr)
+        password = m_password->toStdString().c_str();
+
+    if (unzGoToFirstFile(m_unzipFile) != UNZ_OK)
+        return false;
+
+    do // we iterate over all files
+    {
+        // open current file
+        if (password != nullptr) {
+            // we have a password - so we need to open with it
+            if (unzOpenCurrentFilePassword(m_unzipFile, password) != UNZ_OK) {
+                success = false;
+                break;
+            }
+        } else {
+            // we don't have a password - just open
+            if (unzOpenCurrentFile(m_unzipFile) != UNZ_OK) {
+                success = false;
+                break;
+            }
+        }
+
+        // reading file info
+        unz_file_info fileInfo;
+        if (unzGetCurrentFileInfo(m_unzipFile, &fileInfo, NULL, 0, NULL, 0,
+                                    NULL, 0) != UNZ_OK) {
+            success = false;
+            unzCloseCurrentFile(m_unzipFile);
+            break;
+        }
+
+        // get filename from the fileInfo
+        char filename[fileInfo.size_filename + 1];
+        unzGetCurrentFileInfo(m_unzipFile, &fileInfo, &filename,
+                              fileInfo.size_filename + 1, NULL, 0, NULL, 0);
+        filename[fileInfo.size_filename] = '\0';
+
+        // we are done with the file -> close the file
+        if (unzCloseCurrentFile(m_unzipFile) != UNZ_OK) {
+            success = false;
+            break;
+        }
+
+    }  // goto next file
+    while (unzGoToNextFile(m_unzipFile) == UNZ_OK);
+
+    return success;
 }
 
 bool QMinizip::closeUnzipFile()
 {
+    m_password = nullptr;
+    if (m_unzipFile == nullptr)
+        return false;
 
+    if (unzClose(m_unzipFile) != UNZ_OK) {
+        m_unzipFile = nullptr;
+        return false;
+    }
+
+    m_unzipFile = nullptr;
+    return true;
 }
