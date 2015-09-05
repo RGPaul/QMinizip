@@ -82,14 +82,15 @@ bool QMinizip::addFileToZip(QString *file, QString *newname)
     if (!f.exists())
         return false;
 
+    if (!f.open(QIODevice::ReadOnly))
+        return false;
+
     QFileInfo fInfo = QFileInfo(f);
 
     QByteArray data = f.readAll();
     QDateTime created = fInfo.created();
 
-    bool result = addDataToZip(&data, newname, &created);
-
-    return result;
+    return addDataToZip(&data, newname, &created);
 }
 
 bool QMinizip::addDataToZip(QByteArray *data, QString *newname,

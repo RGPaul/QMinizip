@@ -6,7 +6,7 @@ CONFIG += staticlib
 # link zlib
 LIBS += -lz
 
-# QMinizip sources
+# QMinizip headers / sources
 HEADERS += QMinizip.h
 SOURCES += QMinizip.cpp
 
