@@ -126,9 +126,27 @@ bool QMinizip::addDataToZip(QByteArray *data, QString newname,
                                   ) != Z_OK) {
             return false;
         }
+    } else {
+        uLong crc = crc32(0L, NULL, 0L);
+        crc = crc32( crc, (const Bytef*)data->constData(), (unsigned int)data->size() );
+        if (zipOpenNewFileInZip3(m_zipFile, // file
+                                 newname.toUtf8(), // filename
+                                 &zipInfo, // zipfi
+                                 NULL,0, // extrafield_local
+                                 NULL,0, // extrafield_global
+                                 NULL, //comment
+                                 Z_DEFLATED, // method
+                                 Z_DEFAULT_COMPRESSION, // level
+                                 0, // raw
+                                 15, // windowBits
+                                 8, // memLevel
+                                 Z_DEFAULT_STRATEGY, // strategy
+                                 m_password.toLatin1(), // password
+                                 crc // crcForCrypting
+                                 ) != Z_OK) {
+            return false;
+        }
     }
-
-    // TODO: add password usage
 
     if (zipWriteInFileInZip(m_zipFile, data->constData(), data->size()) != Z_OK)
         return false;
