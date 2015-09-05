@@ -43,16 +43,16 @@ public:
     QStringList *unzippedFiles() const;
     
     // zip
-    Q_INVOKABLE bool createZipFile(QString *file, bool append = false,
-                                   QString *password = nullptr);
-    Q_INVOKABLE bool addFileToZip(QString *file, QString *newname);
-    Q_INVOKABLE bool addDataToZip(QByteArray *data, QString *newname,
-                                  QDateTime *created = nullptr);
+    Q_INVOKABLE bool createZipFile(QString filepath, bool append = false,
+                                   QString password = nullptr);
+    Q_INVOKABLE bool addFileToZip(QString filepath, QString newname);
+    Q_INVOKABLE bool addDataToZip(QByteArray *data, QString newname,
+                                  QDateTime created = QDateTime());
     Q_INVOKABLE bool closeZipFile();
 
     // unzip
-    Q_INVOKABLE bool openUnzipFile(QString *file, QString *password = nullptr);
-    Q_INVOKABLE bool unzipFiles(QString *targetPath, bool overwrite = false);
+    Q_INVOKABLE bool openUnzipFile(QString filepath, QString password = "");
+    Q_INVOKABLE bool unzipFiles(QString targetpath, bool overwrite = false);
     Q_INVOKABLE bool closeUnzipFile();
 
 signals:
@@ -61,7 +61,7 @@ signals:
 public slots:
     
 private:
-    QString *m_password { nullptr };
+    QString m_password;
     QStringList *m_unzippedFiles { nullptr };
 
     void *m_zipFile { nullptr };

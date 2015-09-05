@@ -62,12 +62,12 @@ QStringList * QMinizip::unzippedFiles() const
 // zip functions
 // -----------------------------------------------------------------------------
 
-bool QMinizip::createZipFile(QString *file, bool append, QString *password)
+bool QMinizip::createZipFile(QString filepath, bool append, QString password)
 {
     m_password = password;
     int appendData = (append ? APPEND_STATUS_ADDINZIP : APPEND_STATUS_CREATE);
 
-    m_zipFile = zipOpen(file->toUtf8().data(), appendData);
+    m_zipFile = zipOpen(filepath.toUtf8().data(), appendData);
 
     if (!m_zipFile)
         return false;
@@ -75,48 +75,46 @@ bool QMinizip::createZipFile(QString *file, bool append, QString *password)
     return true;
 }
 
-bool QMinizip::addFileToZip(QString *file, QString *newname)
+bool QMinizip::addFileToZip(QString filepath, QString newname)
 {
-    QFile f = { *file };
+    QFile file = { filepath };
 
-    if (!f.exists())
+    if (!file.exists())
         return false;
 
-    if (!f.open(QIODevice::ReadOnly))
+    if (!file.open(QIODevice::ReadOnly))
         return false;
 
-    QFileInfo fInfo = QFileInfo(f);
+    QFileInfo fileInfo = QFileInfo(file);
 
-    QByteArray data = f.readAll();
-    QDateTime created = fInfo.created();
+    QByteArray data = file.readAll();
+    QDateTime created = fileInfo.created();
 
-    return addDataToZip(&data, newname, &created);
+    return addDataToZip(&data, newname, created);
 }
 
-bool QMinizip::addDataToZip(QByteArray *data, QString *newname,
-                            QDateTime *created)
+bool QMinizip::addDataToZip(QByteArray *data, QString newname,
+                            QDateTime created)
 {
     if (data == nullptr || newname == nullptr || m_zipFile == nullptr)
         return false;
 
-    QDateTime currentDateTime = QDateTime::currentDateTime();
-
-    if (created == nullptr)
-        created = &currentDateTime;
+    if (!created.isValid())
+        created = QDateTime::currentDateTime();
 
     zip_fileinfo zipInfo = {{0,0,0,0,0,0},0,0,0};
 
-    zipInfo.tmz_date.tm_sec = created->time().second();
-    zipInfo.tmz_date.tm_min = created->time().minute();
-    zipInfo.tmz_date.tm_hour = created->time().hour();
-    zipInfo.tmz_date.tm_mday = created->date().day();
-    zipInfo.tmz_date.tm_mon = created->date().month() - 1; // 0-11 vs 1-12
-    zipInfo.tmz_date.tm_year = created->date().year();
+    zipInfo.tmz_date.tm_sec = created.time().second();
+    zipInfo.tmz_date.tm_min = created.time().minute();
+    zipInfo.tmz_date.tm_hour = created.time().hour();
+    zipInfo.tmz_date.tm_mday = created.date().day();
+    zipInfo.tmz_date.tm_mon = created.date().month() - 1; // 0-11 vs 1-12
+    zipInfo.tmz_date.tm_year = created.date().year();
 
-    if (m_password == nullptr)
+    if (m_password.isEmpty())
     {
         if (zipOpenNewFileInZip(m_zipFile, // file
-                                  newname->toUtf8().data(), // filename
+                                  newname.toUtf8().data(), // filename
                                   &zipInfo, // zipfi
                                   NULL, // extrafield_local
                                   0, // size_extrafield_local
@@ -160,7 +158,7 @@ bool QMinizip::closeZipFile()
 // unzip functions
 // -----------------------------------------------------------------------------
 
-bool QMinizip::openUnzipFile(QString *file, QString *password)
+bool QMinizip::openUnzipFile(QString filepath, QString password)
 {
     m_password = password;
 
@@ -169,19 +167,19 @@ bool QMinizip::openUnzipFile(QString *file, QString *password)
 
     m_unzippedFiles = new QStringList();
 
-    m_unzipFile = unzOpen(file->toUtf8().data());
+    m_unzipFile = unzOpen(filepath.toUtf8().data());
 
     return m_unzipFile != nullptr;
 }
 
-bool QMinizip::unzipFiles(QString *targetPath, bool overwrite)
+bool QMinizip::unzipFiles(QString targetpath, bool overwrite)
 {
-    if (targetPath == nullptr || m_unzipFile == nullptr)
+    if (targetpath.isEmpty() || m_unzipFile == nullptr)
         return false;
 
     // targetpath needs a trailing /
-    if (!targetPath->endsWith('/'))
-        targetPath->append('/');
+    if (!targetpath.endsWith('/'))
+        targetpath.append('/');
 
     bool success = true;
 
@@ -189,8 +187,8 @@ bool QMinizip::unzipFiles(QString *targetPath, bool overwrite)
 
     const char *password = { nullptr };
 
-    if (m_password != nullptr)
-        password = m_password->toStdString().c_str();
+    if (!m_password.isEmpty())
+        password = m_password.toStdString().c_str();
 
     if (unzGoToFirstFile(m_unzipFile) != UNZ_OK)
         return false;
@@ -235,7 +233,7 @@ bool QMinizip::unzipFiles(QString *targetPath, bool overwrite)
         while ((index = filename.indexOf('\\')) != -1) {
             filename.replace(index, 1, '/');
         }
-        QString fullpath = *targetPath + filename;
+        QString fullpath = targetpath + filename;
 
         // create directory / parent directories
         index = fullpath.lastIndexOf('/');

@@ -51,20 +51,17 @@ void unzipExample()
     // our Minizip class
     rgp::QMinizip zipper;
 
-    // path to a test zip
-    QString filename = downloadPath + "/test.zip";
-    // password for the test zip
-    QString pwd = "test";
-    // target folder
-    QString targetpath = downloadPath + "/test";
+    // we assume that we have a test.zip file in our downloads directory
+    // and that the zip file is password protected
 
-    qDebug() << "opening zip file: " << filename;
-    if (zipper.openUnzipFile(&filename, &pwd))
+    qDebug() << "opening zip file: " << downloadPath << "/test.zip";
+
+    if (zipper.openUnzipFile(downloadPath + "/test.zip", "test"))
         qDebug() << "opened zip file";
     else
         qDebug() << "openening zip file failed";
 
-    if (zipper.unzipFiles(&targetpath))
+    if (zipper.unzipFiles(downloadPath + "/test"))
         qDebug() << "unzip sucessful";
     else
         qDebug() << "unzip failed";
@@ -80,38 +77,27 @@ void zipExample()
     // our Minizip class
     rgp::QMinizip zipper;
 
+    // we assume that we have 3 images ( 1.jpg, 2.jpg and 3.jpg ) in our
+    // downloads folder
+
     QString filename = downloadPath + "/images.zip";
 
+    QStringList files = { "1.jpg", "2.jpg", "3.jpg" };
+
     qDebug() << "opening zip file: " << filename;
-    if (zipper.createZipFile(&filename))
+    if (zipper.createZipFile(filename))
         qDebug() << "opened zip file";
     else
         qDebug() << "openening zip file failed";
 
-    QString file1 = downloadPath + "/1.jpg";
-    QString file2 = downloadPath + "/2.jpg";
-    QString file3 = downloadPath + "/3.jpg";
+    for (QString file : files) {
+        qDebug() << "adding file: " << file;
 
-    QString name1 = "1.jpg";
-    QString name2 = "subfolder/2.jpg";
-    QString name3 = "3.jpg";
-
-    if (zipper.addFileToZip(&file1, &name1)) {
-        qDebug() << "added file successfully";
-    } else {
-        qDebug() << "failed to add file";
-    }
-
-    if (zipper.addFileToZip(&file2, &name2)) {
-        qDebug() << "added file successfully";
-    } else {
-        qDebug() << "failed to add file";
-    }
-
-    if (zipper.addFileToZip(&file3, &name3)) {
-        qDebug() << "added file successfully";
-    } else {
-        qDebug() << "failed to add file";
+        if (zipper.addFileToZip(downloadPath + '/' + file, file)) {
+            qDebug() << "added " << file << " successfully";
+        } else {
+            qDebug() << "failed to add " << file;
+        }
     }
 
     zipper.closeZipFile();
