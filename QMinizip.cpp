@@ -28,6 +28,7 @@ SOFTWARE.
 
 #include <QFile>
 #include <QFileInfo>
+#include <QDir>
 
 #include <zlib.h>
 #include <zconf.h>
@@ -177,9 +178,13 @@ bool QMinizip::unzipFiles(QString *targetPath, bool overwrite)
     if (targetPath == nullptr || m_unzipFile == nullptr)
         return false;
 
+    // targetpath needs a trailing /
+    if (!targetPath->endsWith('/'))
+        targetPath->append('/');
+
     bool success = true;
 
-    unsigned char buffer[4096] = {0};
+    char buffer[4096] = {0};
 
     const char *password = { nullptr };
 
@@ -216,10 +221,58 @@ bool QMinizip::unzipFiles(QString *targetPath, bool overwrite)
         }
 
         // get filename from the fileInfo
-        char filename[fileInfo.size_filename + 1];
-        unzGetCurrentFileInfo(m_unzipFile, &fileInfo, &filename,
+        char cfilename[fileInfo.size_filename + 1];
+        unzGetCurrentFileInfo(m_unzipFile, &fileInfo, cfilename,
                               fileInfo.size_filename + 1, NULL, 0, NULL, 0);
-        filename[fileInfo.size_filename] = '\0';
+        cfilename[fileInfo.size_filename] = '\0';
+
+        // check filename for paths
+        QString filename = { cfilename };
+
+        // replace all '\' with '/'
+        int index = -1;
+        while ((index = filename.indexOf('\\')) != -1) {
+            filename.replace(index, 1, '/');
+        }
+        QString fullpath = *targetPath + filename;
+
+        // create directory / parent directories
+        index = fullpath.lastIndexOf('/');
+        if (index != -1) {
+            QDir path = { fullpath.left(index) };
+            path.mkpath(".");
+        }
+
+        QFile *file = nullptr;
+        int read = 0;
+        while ((read = unzReadCurrentFile(m_unzipFile, buffer, 4096)) > 0)
+        {
+            if (file == nullptr)
+            {
+                if (QFile::exists(fullpath) && !overwrite)
+                    break;
+
+                file = new QFile(fullpath);
+
+                if (!file->open(QIODevice::WriteOnly)) {
+                    delete file;
+                    file = nullptr;
+                    break;
+                }
+            }
+            QByteArray data = QByteArray::fromRawData(buffer, read);
+            file->write(data);
+        }
+
+        // check if we got an error
+        if (read < 0)
+            success = false;
+
+        if (file != nullptr) {
+            file->close(); // flush the data to the file
+            delete file;
+            file = nullptr;
+        }
 
         // we are done with the file -> close the file
         if (unzCloseCurrentFile(m_unzipFile) != UNZ_OK) {
@@ -227,8 +280,8 @@ bool QMinizip::unzipFiles(QString *targetPath, bool overwrite)
             break;
         }
 
-    }  // goto next file
-    while (unzGoToNextFile(m_unzipFile) == UNZ_OK);
+    } // goto next file
+    while (unzGoToNextFile(m_unzipFile) == UNZ_OK && success);
 
     return success;
 }

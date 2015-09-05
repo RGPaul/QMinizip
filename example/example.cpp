@@ -25,10 +25,38 @@ SOFTWARE.
 */
 
 #include <QCoreApplication>
+#include <QDebug>
+#include <QStandardPaths>
+
+#include <QMinizip.h>
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+
+    QString downloadPath =
+            QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+
+    // our Minizip class
+    rgp::QMinizip zipper;
+
+    // path to a test zip
+    QString filename = downloadPath + "/test.zip";
+    // password for the test zip
+    QString pwd = "test";
+    // target folder
+    QString targetpath = downloadPath + "/test";
+
+    qDebug() << "opening zip file: " << filename;
+    if (zipper.openUnzipFile(&filename, &pwd))
+        qDebug() << "opened zip file";
+    else
+        qDebug() << "opened zip file failed";
+
+    if (zipper.unzipFiles(&targetpath))
+        qDebug() << "unzip sucessful";
+    else
+        qDebug() << "unzip failed";
 
     return a.exec();
 }
