@@ -7,6 +7,14 @@
 3. Add libQMinizip to your project.
 4. Add zlib to your project.
 
+If you are on Linux / Mac OS X you can install the library over the command line.
+
+```shell
+qmake -o Makefile QMinizip.pro
+make
+sudo make install
+```
+
 ## Usage
 
 ## License

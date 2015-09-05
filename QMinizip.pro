@@ -29,3 +29,13 @@ SOURCES += minizip/zip.c \
 win32 {
     SOURCES += minizip/iowin32.c
 }
+
+# installation
+unix {
+    libfile.path = /usr/local/lib
+    libfile.files = libQMinizip.a
+    headerfile.path = /usr/local/include
+    headerfile.files = QMinizip.h
+    INSTALLS += libfile
+    INSTALLS += headerfile
+}
