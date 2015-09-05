@@ -18,4 +18,4 @@ sudo make install
 ## Usage
 
 ## License
-QMinizip is licensed under the [MIT license](https://bitbucket.org/manromen/qminizip/src/master/LICENSE) and [Minizip](http://www.winimage.com/zLibDll/minizip.html) is licensed under the [Zlib license](http://www.zlib.net/zlib_license.html).
+QMinizip is licensed under the [MIT license](https://github.com/Manromen/QMinizip/blob/master/LICENSE) and [Minizip](http://www.winimage.com/zLibDll/minizip.html) is licensed under the [Zlib license](http://www.zlib.net/zlib_license.html).
