@@ -1,5 +1,5 @@
 # QMinizip
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://bitbucket.org/manromen/qminizip/src/master/LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Manromen/QMinizip/blob/master/LICENSE)
 
 ## Installation
 1. Init git submodules (to install minizip).
