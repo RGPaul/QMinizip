@@ -3,7 +3,7 @@
 
 ## Installation
 1. Init git submodules (to install minizip).
-2. Open QMinizip.pro and compile the static library.
+2. Open QMinizip.pro and compile the shared library.
 3. Add libQMinizip to your project.
 4. Add zlib to your project.
 

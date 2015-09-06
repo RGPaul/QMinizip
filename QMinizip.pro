@@ -1,7 +1,9 @@
 TEMPLATE = lib
 
 CONFIG += c++11
-CONFIG += staticlib
+CONFIG += shared
+
+VERSION = 1.0.0
 
 # link zlib
 LIBS += -lz
@@ -33,8 +35,9 @@ win32 {
 # installation
 unix {
     libfile.path = /usr/local/lib
-    libfile.files = libQMinizip.a
-    headerfile.path = /usr/local/include
+    macx { libfile.files = libQMinizip.$${VERSION}.dylib }
+    !macx { libfile.files = libQMinizip.$${VERSION}.so }
+    headerfile.path = /usr/local/include/QMinizip
     headerfile.files = QMinizip.h
     INSTALLS += libfile
     INSTALLS += headerfile
