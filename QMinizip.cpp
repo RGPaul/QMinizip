@@ -287,6 +287,8 @@ bool QMinizip::unzipFiles(QString targetpath, bool overwrite)
 
         if (file != nullptr) {
             file->close(); // flush the data to the file
+            // we list all unzipped files
+            m_unzippedFiles->append(fullpath);
             delete file;
             file = nullptr;
         }

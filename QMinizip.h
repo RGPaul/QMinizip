@@ -56,7 +56,6 @@ public:
     Q_INVOKABLE bool closeUnzipFile();
 
 signals:
-    void error(QString message);
     
 public slots:
     
