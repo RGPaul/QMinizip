@@ -5,6 +5,8 @@ CONFIG += shared
 
 VERSION = 1.0.0
 
+macx::QMAKE_MAC_SDK = macosx10.11
+
 # link zlib
 LIBS += -lz
 
@@ -18,9 +20,7 @@ HEADERS += minizip/zip.h \
            minizip/ioapi.h \
            minizip/ioapi_buf.h \
            minizip/ioapi_mem.h
-win32 {
-    HEADERS += minizip/iowin32.h
-}
+win32::HEADERS += minizip/iowin32.h
 
 # minizip sources
 SOURCES += minizip/zip.c \
@@ -28,9 +28,7 @@ SOURCES += minizip/zip.c \
            minizip/ioapi.c \
            minizip/ioapi_buf.c \
            minizip/ioapi_mem.c
-win32 {
-    SOURCES += minizip/iowin32.c
-}
+win32::SOURCES += minizip/iowin32.c
 
 # installation
 unix {
