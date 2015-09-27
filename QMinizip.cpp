@@ -238,7 +238,7 @@ bool QMinizip::unzipFiles(QString targetpath, bool overwrite)
         }
 
         // get filename from the fileInfo
-        char cfilename[fileInfo.size_filename + 1];
+        char *cfilename = new char[fileInfo.size_filename + 1];
         unzGetCurrentFileInfo(m_unzipFile, &fileInfo, cfilename,
                               fileInfo.size_filename + 1, NULL, 0, NULL, 0);
         cfilename[fileInfo.size_filename] = '\0';

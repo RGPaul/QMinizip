@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "zlib.h"
+#include <zlib.h>
 #include "ioapi.h"
 
 #include "ioapi_mem.h"

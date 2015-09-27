@@ -9,13 +9,20 @@ CONFIG += c++11
 CONFIG += console
 CONFIG -= app_bundle
 
+# include path for third party libraries
+unix::INCLUDEPATH += /usr/local/include
+win32::INCLUDEPATH += "C:/include"
+
+# lib path for third party libraries
+unix::LIBS += -L/usr/local/lib
+
 # link zlib
-LIBS += -lz
+unix::LIBS += -lz
+win32::LIBS += "C:/lib/zdll.lib"
 
 # link QMinizip
-# in this example we assume that we installed the headers to /usr/local/include
-# and that we installed the libQMinizip library to /usr/local/lib
-INCLUDEPATH += /usr/local/include
-LIBS += -L/usr/local/lib  -lQMinizip
+unix::LIBS += -lQMinizip
+win32::LIBS += "C:/lib/QMinizip.lib"
 
+# all source files
 SOURCES += example.cpp

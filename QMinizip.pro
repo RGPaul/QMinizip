@@ -5,10 +5,15 @@ CONFIG += shared
 
 VERSION = 1.0.0
 
+DEFINES += Q_MINIZIP_LIBRARY=1
+
 macx::QMAKE_MAC_SDK = macosx10.11
 
+win32::INCLUDEPATH += "C:/include"
+win32::LIBS += "C:/lib/zdll.lib"
+
 # link zlib
-LIBS += -lz
+unix::LIBS += -lz
 
 # QMinizip headers / sources
 HEADERS += QMinizip.h
@@ -19,7 +24,8 @@ HEADERS += minizip/zip.h \
            minizip/unzip.h \
            minizip/ioapi.h \
            minizip/ioapi_buf.h \
-           minizip/ioapi_mem.h
+           minizip/ioapi_mem.h \
+           minizip/crypt.h
 win32::HEADERS += minizip/iowin32.h
 
 # minizip sources

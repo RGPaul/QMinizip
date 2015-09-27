@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <tchar.h>
 
-#include "zlib.h"
+#include <zlib.h>
 #include "ioapi.h"
 #include "iowin32.h"
 

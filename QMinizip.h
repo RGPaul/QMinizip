@@ -29,9 +29,15 @@ SOFTWARE.
 #include <QStringList>
 #include <QDateTime>
 
+#if defined Q_MINIZIP_LIBRARY
+ #define Q_MINIZIP_DLLSPEC Q_DECL_EXPORT
+#else
+ #define Q_MINIZIP_DLLSPEC Q_DECL_IMPORT
+#endif
+
 namespace rgp {
 
-class QMinizip : QObject
+class Q_MINIZIP_DLLSPEC QMinizip : QObject
 {
     Q_OBJECT
     Q_PROPERTY(QStringList *unzippedFiles READ unzippedFiles)

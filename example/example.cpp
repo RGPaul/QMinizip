@@ -54,7 +54,7 @@ void unzipExample()
     // we assume that we have a test.zip file in our downloads directory
     // and that the zip file is password protected
 
-    qDebug() << "opening zip file: " << downloadPath << "/test.zip";
+    qDebug() << "opening zip file: " << downloadPath + "/test.zip";
 
     if (zipper.openUnzipFile(downloadPath + "/test.zip", "test"))
         qDebug() << "opened zip file";
