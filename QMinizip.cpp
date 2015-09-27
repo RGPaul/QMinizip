@@ -246,6 +246,8 @@ bool QMinizip::unzipFiles(QString targetpath, bool overwrite)
         // check filename for paths
         QString filename = { cfilename };
 
+        delete[] cfilename;
+
         // replace all '\' with '/'
         int index = -1;
         while ((index = filename.indexOf('\\')) != -1) {
