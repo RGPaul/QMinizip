@@ -24,6 +24,8 @@ SOFTWARE.
 --------------------------------------------------------------------------------
 */
 
+#pragma once
+
 #include <QObject>
 #include <QString>
 #include <QStringList>
